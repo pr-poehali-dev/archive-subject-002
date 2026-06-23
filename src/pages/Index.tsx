@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
+import LoadingScreen from '@/components/LoadingScreen';
+import Timeline from '@/components/Timeline';
 
 type Mode = 'fleet' | 'caleb';
 
@@ -12,6 +14,9 @@ const RADIO_DIALOG = [
 const Index = () => {
   const [mode, setMode] = useState<Mode>('fleet');
   const [glitching, setGlitching] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  if (!loaded) return <LoadingScreen onEnter={() => setLoaded(true)} />;
 
   const toggleMode = () => {
     setGlitching(true);
@@ -67,6 +72,7 @@ const Index = () => {
 
       <Hero isFleet={isFleet} />
       <Dossier isFleet={isFleet} />
+      <Timeline />
       <Radio isFleet={isFleet} />
       <Decoherence />
       <Footer isFleet={isFleet} />
@@ -267,9 +273,26 @@ const ScarModal = ({ scar, onClose }: { scar: 'arm' | 'head'; onClose: () => voi
   );
 };
 
+const SECRET = 'когдатывернёшься';
+
 const Radio = ({ isFleet }: { isFleet: boolean }) => {
   const [visible, setVisible] = useState<number>(0);
   const [started, setStarted] = useState(false);
+  const [secret, setSecret] = useState(false);
+  const buffer = useRef('');
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.length !== 1) return;
+      buffer.current = (buffer.current + e.key.toLowerCase()).replace(/[\s,.]/g, '').slice(-SECRET.length);
+      if (buffer.current === SECRET) {
+        setSecret(true);
+        setTimeout(() => setSecret(false), 4000);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   const start = () => {
     setStarted(true);
@@ -281,7 +304,7 @@ const Radio = ({ isFleet }: { isFleet: boolean }) => {
 
   return (
     <section className="relative z-10 mx-auto max-w-md px-6 py-24">
-      <SectionTitle isFleet={isFleet} num="02" label="РАЦИЯ" />
+      <SectionTitle isFleet={isFleet} num="03" label="РАЦИЯ" />
       <div
         className="mt-12 overflow-hidden rounded-3xl border-2 scanlines"
         style={{ borderColor: '#1A2A5A', background: '#070d1f' }}
@@ -332,7 +355,44 @@ const Radio = ({ isFleet }: { isFleet: boolean }) => {
           </button>
         </div>
       </div>
+      <p className="mt-4 text-center font-fira text-[10px] tracking-widest text-cold/30">
+        наберите тайную фразу на клавиатуре...
+      </p>
+
+      {secret && <PendantSecret />}
     </section>
+  );
+};
+
+const PendantSecret = () => {
+  const [broken, setBroken] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setBroken(true), 1500);
+    const t2 = setTimeout(() => setBroken(false), 2600);
+    return () => {
+      clearTimeout(t);
+      clearTimeout(t2);
+    };
+  }, []);
+  return (
+    <div className="fixed inset-0 z-[90] flex flex-col items-center justify-center bg-black/90 animate-fade-up">
+      <div className={`animate-pendant-fall ${broken ? 'animate-glitch' : ''}`}>
+        <Icon
+          name="Gem"
+          size={90}
+          className={broken ? 'text-blood' : 'text-gold'}
+          style={{ filter: `drop-shadow(0 0 24px ${broken ? '#8B0000' : '#FFB347'})` }}
+        />
+      </div>
+      <p className="mt-10 max-w-xs text-center font-cormorant text-2xl italic text-warm">
+        {broken
+          ? '...разбился. И собрался вновь.'
+          : '«Когда ты вернёшься?» — спросила она.'}
+      </p>
+      <p className="mt-3 font-cormorant text-lg italic text-gold/70">
+        «Всегда. Даже после смерти.»
+      </p>
+    </div>
   );
 };
 
@@ -400,7 +460,7 @@ const Decoherence = () => {
         />
       ))}
 
-      <SectionTitle isFleet={false} num="03" label="DECOHERENCE" />
+      <SectionTitle isFleet={false} num="04" label="DECOHERENCE" />
 
       {!born ? (
         <>
