@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import Icon from '@/components/ui/icon';
 import LoadingScreen from '@/components/LoadingScreen';
 import Timeline from '@/components/Timeline';
+import DecoherenceSection from '@/components/Decoherence';
+import AppleEgg from '@/components/AppleEgg';
+import AudioEngine from '@/components/AudioEngine';
 
 type Mode = 'fleet' | 'caleb';
 
@@ -74,8 +77,10 @@ const Index = () => {
       <Dossier isFleet={isFleet} />
       <Timeline />
       <Radio isFleet={isFleet} />
-      <Decoherence />
+      <DecoherenceSection />
       <Footer isFleet={isFleet} />
+      <AppleEgg />
+      <AudioEngine isFleet={isFleet} />
     </div>
   );
 };
@@ -396,124 +401,6 @@ const PendantSecret = () => {
   );
 };
 
-const Decoherence = () => {
-  const [merge, setMerge] = useState(0);
-  const [born, setBorn] = useState(false);
-  const [flash, setFlash] = useState(false);
-  const raf = useRef<number>();
-  const bornRef = useRef(false);
-
-  const stars = useRef(
-    Array.from({ length: 60 }, () => ({
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      d: Math.random() * 3 + 1,
-    }))
-  );
-
-  const hold = () => {
-    const tick = () => {
-      setMerge((m) => {
-        const next = Math.min(m + 0.012, 1);
-        if (next >= 1 && !bornRef.current) {
-          bornRef.current = true;
-          setFlash(true);
-          setBorn(true);
-          setTimeout(() => setFlash(false), 600);
-        }
-        return next;
-      });
-      raf.current = requestAnimationFrame(tick);
-    };
-    raf.current = requestAnimationFrame(tick);
-  };
-  const release = () => {
-    if (raf.current) cancelAnimationFrame(raf.current);
-    if (!bornRef.current) setMerge(0);
-  };
-
-  const gap = (1 - merge) * 80;
-
-  return (
-    <section
-      className="relative z-10 flex min-h-screen select-none flex-col items-center justify-center overflow-hidden px-6 py-24"
-      style={{ background: 'radial-gradient(circle at 50% 40%, #14122e, #050310 70%)' }}
-      onMouseDown={hold}
-      onMouseUp={release}
-      onMouseLeave={release}
-      onTouchStart={hold}
-      onTouchEnd={release}
-    >
-      {stars.current.map((s, i) => (
-        <span
-          key={i}
-          className="absolute rounded-full bg-white animate-twinkle"
-          style={{
-            left: `${s.x}%`,
-            top: `${s.y}%`,
-            width: s.d,
-            height: s.d,
-            animationDelay: `${i * 0.1}s`,
-            transform: `rotate(${merge * 360}deg)`,
-            transition: 'transform 0.1s linear',
-          }}
-        />
-      ))}
-
-      <SectionTitle isFleet={false} num="04" label="DECOHERENCE" />
-
-      {!born ? (
-        <>
-          <div className="relative mt-16 flex h-40 items-center justify-center">
-            <Soul color="#7aa0ff" style={{ transform: `translateX(-${gap}px)` }} glow={merge} />
-            <div
-              className="absolute h-2 w-2 rounded-full bg-white"
-              style={{
-                opacity: merge,
-                boxShadow: `0 0 ${merge * 60}px ${merge * 30}px #fff5e6`,
-                transform: `scale(${merge * 4})`,
-              }}
-            />
-            <Soul color="#FFB347" style={{ transform: `translateX(${gap}px)` }} glow={merge} />
-          </div>
-          <p className="mt-12 font-fira text-xs tracking-widest text-warm/60">
-            ⌖ ЗАЖМИ И ДЕРЖИ — два сердца притягиваются
-          </p>
-        </>
-      ) : (
-        <div className="mt-16 flex flex-col items-center text-center animate-fade-up">
-          <span
-            className="h-16 w-16 animate-star-pulse rounded-full"
-            style={{ background: '#FFF5E6', boxShadow: '0 0 80px 30px #FFB347' }}
-          />
-          <p className="mt-10 max-w-md font-cormorant text-2xl italic text-warm">
-            Он целует её в первый и последний раз. Из их сердец рождается новая звезда.
-          </p>
-          <p className="mt-6 font-cormorant text-lg italic text-gold/80">
-            «В жизни и смерти мы никогда не будем разлучены»
-          </p>
-        </div>
-      )}
-
-      {flash && <div className="fixed inset-0 z-[90] bg-white animate-flicker" />}
-    </section>
-  );
-};
-
-const Soul = ({
-  color,
-  style,
-  glow,
-}: {
-  color: string;
-  style: React.CSSProperties;
-  glow: number;
-}) => (
-  <span
-    className="h-10 w-10 rounded-full transition-transform"
-    style={{ ...style, background: color, boxShadow: `0 0 ${20 + glow * 50}px ${color}` }}
-  />
-);
 
 const Footer = ({ isFleet }: { isFleet: boolean }) => {
   const [seconds, setSeconds] = useState(0);
